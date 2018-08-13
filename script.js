@@ -6,6 +6,8 @@
 var bagHandleLocations = [[380, 280], [420, 220]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
+var animatedMode = true;
+var animatedModeTickRate = 100; //ms per frame
 
 //PARTICLE FILTER
 var numParticles = 500;
@@ -34,6 +36,8 @@ var particles = [];
 var mousePos = [];
 var clusterColors = [];
 var started = false;
+var running = false;
+var stop = false;
 
 ///////////////////////////////////////////
 /// CLASSES
@@ -113,7 +117,15 @@ function mouseClickCanvas() {
 		generateParticles();
 		started = true;
 	}
-	tick();
+
+	if(running) {
+		stop = true;
+	}
+	else {
+		running = true;
+		tick();
+	}
+
 }
 
 function drawFrame(maxWeight) {
@@ -256,6 +268,12 @@ function drawCentroids(centroids) {
 }
 
 function tick() {
+	if(animatedMode && stop) {
+		stop = false;
+		running = false;
+		return;
+	}
+
 	var currentMousePos = mousePos.slice();
 
 	measureParticles(currentMousePos);
@@ -276,6 +294,10 @@ function tick() {
 
 	var centroids = getClusterCentroids();
 	drawCentroids(centroids);
+
+	if(animatedMode) {
+		window.setTimeout(tick, animatedModeTickRate);
+	}
 }
 
 function generateParticles() {
