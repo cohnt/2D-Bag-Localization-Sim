@@ -2,17 +2,23 @@
 /// CONSTANTS
 ///////////////////////////////////////////
 
-var canvasSize = {width: 800, height: 500};
+//GLOBAL SETTINGS
 var bagHandleLocations = [[380, 280], [420, 220]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
+
+//PARTICLE FILTER
 var numParticles = 500;
-var particleDispRadius = 2;
-var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
-var colorMode = "dbscan"; //"dbscan", "error", or "weight"
 var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
 var resamplingNoise = 10; //The maximum distance in resampling
 
+//CANVAS
+var canvasSize = {width: 800, height: 500};
+var particleDispRadius = 2;
+var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
+var colorMode = "dbscan"; //"dbscan", "error", or "weight"
+
+//DBSCAN
 var epsilon = 10;
 var minClusterSize = 25;
 var noiseColor = "grey";
@@ -110,12 +116,9 @@ function mouseClickCanvas() {
 	tick();
 }
 
-function drawFrame() {
+function drawFrame(maxWeight) {
 	clearCanvas();
 	drawMouseToHandles();
-	var weights = particles.map(a => a.weight);
-	var maxWeight = weights.reduce(function(a, b) { return Math.max(a, b); });
-	if(maxWeight == 0) { maxWeight = 1; }
 	for(var i=0; i<particles.length; ++i) {
 		particles[i].draw(ctx, maxWeight);
 	}
@@ -265,7 +268,11 @@ function tick() {
 	clearIDs();
 	dbscan();
 
-	drawFrame();
+	var weights = particles.map(a => a.weight);
+	var maxWeight = weights.reduce(function(a, b) { return Math.max(a, b); });
+	if(maxWeight == 0) { maxWeight = 1; }
+
+	drawFrame(maxWeight);
 
 	var centroids = getClusterCentroids();
 	drawCentroids(centroids);
