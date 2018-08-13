@@ -27,7 +27,7 @@ function Particle(pos=[0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
-	this.distFromRay = null;
+	this.angleDistFromLine = null;
 
 	this.randomize = function() {
 		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
@@ -183,16 +183,16 @@ function generateParticles() {
 	}
 }
 function measureParticles(currentMousePos) {
-	function distPointLine(p1, p2, p0) {
-		//https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
-		return Math.abs((p2[1]-p1[1])*p0[0] - (p2[0]-p1[0])*p0[1] + p2[0]*p1[1] - p2[1]*p1[0])
-		       / Math.sqrt(Math.pow(p2[1]-p1[1], 2) + Math.pow(p2[0]-p1[0], 2));
+	function angleDistPointLine(mouse, bag, particle) {
+		//https://stackoverflow.com/questions/1211212/how-to-calculate-an-angle-from-three-points
+		return Math.atan2(bag[1] - mouse[1], bag[0] - mouse[0]) - Math.atan2(particle[1] - mouse[1], particle[0] - mouse[0]);
 	}
 
 	for(var i=0; i<particles.length; ++i) {
-		var d0 = distPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos);
-		var d1 = distPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos);
-		particles[i].distFromRay = Math.min(d0, d1);
+		var d0 = angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos);
+		var d1 = angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos);
+		particles[i].angleDistFromLine = Math.abs(Math.min(d0, d1));
+		console.log(particles[i].angleDistFromLine);
 	}
 }
 function calculateWeights() {
