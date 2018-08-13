@@ -2,6 +2,7 @@
 /// CONSTANTS
 ///////////////////////////////////////////
 
+var canvasSize = {width: 800, height: 500};
 var bagHandleLocations = [[380, 280], [420, 220]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
@@ -17,7 +18,16 @@ var ctx;
 /// CLASSES
 ///////////////////////////////////////////
 
+function Particle(loc) {
+	this.loc = loc.slice();
+	this.weight = 0;
+	this.isExploration = false;
 
+	this.randomize = function() {
+		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
+		this.isExploration = true;
+	}
+}
 
 ///////////////////////////////////////////
 /// FUNCTIONS
