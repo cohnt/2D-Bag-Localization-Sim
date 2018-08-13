@@ -8,7 +8,7 @@ var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
 var particleDispRadius = 3;
-var errorColorDivisor = 10; //Error is mapped to color with e^(-x/k). This is constant is k.
+var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-x/errorColorDivisor).
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -31,7 +31,7 @@ function Particle(pos) {
 		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
 		this.isExploration = true;
 	}
-	this.draw = function(ctx, maxWeight, mult) {
+	this.draw = function(ctx) {
 		color = errorToColor(this.getError());
 		ctx.strokeStyle = color;
 		ctx.fillStyle = color;
@@ -42,8 +42,10 @@ function Particle(pos) {
 		ctx.fill();
 	}
 	this.getError = function() {
-		//TODO
-		return 0;
+		var dists = [dist(this.pos, bagHandleLocations[0]),
+		             dist(this.pos, bagHandleLocations[1])];
+		var error = Math.min(dists[0], dists[1]);
+		return error;
 	}
 }
 
@@ -134,6 +136,15 @@ function errorToColor(error) {
 	}
 
 	return rgbToHex(r, g, b);
+}
+
+function dist2(a, b) {
+	//
+	return Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2);
+}
+function dist(a, b) {
+	//
+	return Math.sqrt(dist2(a, b));
 }
 
 ///////////////////////////////////////////
