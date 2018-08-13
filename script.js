@@ -91,13 +91,13 @@ function mouseClickCanvas() {
 function drawFrame() {
 	clearCanvas();
 	drawMouseToHandles();
-	drawBag();
 	var weights = particles.map(a => a.weight);
 	var maxWeight = weights.reduce(function(a, b) { return Math.max(a, b); });
 	if(maxWeight == 0) { maxWeight = 1; }
 	for(var i=0; i<particles.length; ++i) {
 		particles[i].draw(ctx, maxWeight);
 	}
+	drawBag();
 }
 function clearCanvas() {
 	//
