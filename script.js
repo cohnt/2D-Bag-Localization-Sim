@@ -35,6 +35,9 @@ function Particle(loc) {
 
 function setup() {
 	canvas = document.getElementById("canvas");
+	canvas.setAttribute("width", String(canvasSize.width) + "px");
+	canvas.setAttribute("height", String(canvasSize.height) + "px");
+
 	ctx = canvas.getContext("2d");
 
 	drawBag();
