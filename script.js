@@ -9,9 +9,14 @@ var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
 var particleDispRadius = 1;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
-var useErrorColor = false;
+var colorMode = "dbscan"; //"dbscan", "error", or "weight"
 var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
 var resamplingNoise = 10; //The maximum distance in resampling
+
+var epsilon = 10;
+var minClusterSize = 25;
+var noiseColor = "grey";
+var unassignedColor = "black";
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -21,6 +26,7 @@ var canvas;
 var ctx;
 var particles = [];
 var mousePos = [];
+var clusterColors = [];
 
 ///////////////////////////////////////////
 /// CLASSES
@@ -32,16 +38,30 @@ function Particle(pos=[0, 0]) {
 	this.isExploration = false;
 	this.angleDistFromLine = null;
 
+	this.type = "unassigned";
+	this.cID = -1;
+
 	this.randomize = function() {
 		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
 		this.isExploration = true;
 	}
 	this.draw = function(ctx, maxWeight=1) {
-		if(useErrorColor) {
+		if(colorMode == "error") {
 			color = errorToColor(this.getError());
 		}
-		else {
+		else if(colorMode == "weight") {
 			color = weightToColor(this.weight / maxWeight);
+		}
+		else if(colorMode == "dbscan") {
+			if(this.type == "noise") {
+				color = noiseColor;
+			}
+			else if(this.type == "unassigned") {
+				color = unassignedColor;
+			}
+			else {
+				color = clusterColors[this.cID];
+			}
 		}
 		ctx.strokeStyle = color;
 		ctx.fillStyle = color;
@@ -194,6 +214,42 @@ function weightToColor(weight) {
 	return rgbToHex(r, g, b);
 }
 
+function getClusterCentroids() {
+	var centroids = clusterColors.slice();
+	var num = clusterColors.slice();
+	for(var i=1; i<centroids.length; ++i) {
+		centroids[i] = [0, 0];
+		num[i] = 0;
+	}
+
+	for(var i=0; i<particles.length; ++i) {
+		var id = particles[i].cID;
+		if(id == -1) {
+			continue;
+		}
+		centroids[id][0] += particles[i].pos[0];
+		centroids[id][1] += particles[i].pos[1];
+		++num[id];
+	}
+
+	for(var i=1; i<centroids.length; ++i) {
+		centroids[i][0] /= num[i];
+		centroids[i][1] /= num[i];
+	}
+
+	return centroids;
+}
+function drawCentroids(centroids) {
+	for(var i=1; i<centroids.length; ++i) {
+		ctx.beginPath();
+		ctx.moveTo(centroids[i][0], centroids[i][1]);
+		ctx.arc(centroids[i][0], centroids[i][1], 5, 0, 2*Math.PI);
+		ctx.closePath();
+		ctx.fillStyle = clusterColors[i];
+		ctx.fill();
+	}
+}
+
 function tick() {
 	var currentMousePos = mousePos.slice();
 
@@ -203,7 +259,14 @@ function tick() {
 	resampleParticles();
 	measureParticles(currentMousePos);
 	calculateWeights();
+
+	clearIDs();
+	dbscan();
+
 	drawFrame();
+
+	var centroids = getClusterCentroids();
+	drawCentroids(centroids);
 }
 
 function generateParticles() {
@@ -268,6 +331,78 @@ function resampleParticles() {
 		newParticles[i].randomize();
 	}
 	particles = newParticles.slice();
+}
+
+function clearIDs() {
+	for(var i=0; i<particles.length; ++i) {
+		particles[i].cID = -1;
+		particles[i].type = "unassigned";
+	}
+	clusterColors = [];
+}
+function dbscan() {
+	var cID = 0;
+	for(var i=0; i<particles.length; ++i) {
+		if(particles[i].type != "unassigned") {
+			continue;
+		}
+
+		var neighbors = findNeighbors(particles, particles[i]);
+		if(neighbors.length < minClusterSize) {
+			particles[i].type = "noise";
+			continue;
+		}
+
+		++cID;
+		particles[i].cID = cID;
+		particles[i].type = "core";
+
+		for(var j=0; j<neighbors.length; ++j) {
+			if(particles[neighbors[j]].type == "noise") {
+				particles[neighbors[j]].type = "border";
+				particles[neighbors[j]].cID = cID;
+			}
+			else if(particles[neighbors[j]].type != "unassigned") {
+				continue;
+			}
+			else {
+				particles[neighbors[j]].cID = cID;
+				var newNeighbors = findNeighbors(particles, particles[neighbors[j]]);
+				if(newNeighbors.length > minClusterSize) {
+					particles[neighbors[j]].type = "core";
+					for(var k=0; k<newNeighbors.length; ++k) {
+						if(!neighbors.includes(newNeighbors[k])) {
+							neighbors.push(newNeighbors[k]);
+						}
+					}
+				}
+				else {
+					particles[neighbors[j]].type = "border";
+				}
+			}
+		}
+	}
+	clusterColors.push(null);
+	for(var i=1; i<=cID; ++i) {
+		clusterColors.push(getRandColor(1));
+	}
+}
+function findNeighbors(points, point) {
+	var out = [];
+	for(var i=0; i<points.length; ++i) {
+		if(dist(points[i].pos, point.pos) < epsilon) {
+			out.push(i);
+		}
+	}
+	return out;
+}
+function getRandColor(brightness){
+	// From https://stackoverflow.com/questions/1484506/random-color-generator
+	// Six levels of brightness from 0 to 5, 0 being the darkest
+	var rgb = [Math.random() * 256, Math.random() * 256, Math.random() * 256];
+	var mix = [brightness*51, brightness*51, brightness*51]; //51 => 255/5
+	var mixedrgb = [rgb[0] + mix[0], rgb[1] + mix[1], rgb[2] + mix[2]].map(function(x){ return Math.round(x/2.0)})
+	return "rgb(" + mixedrgb.join(",") + ")";
 }
 
 function dist2(a, b) {
