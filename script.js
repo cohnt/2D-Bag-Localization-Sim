@@ -7,7 +7,7 @@ var bagHandleLocations = [[380, 280], [420, 220]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
-var particleDispRadius = 1;
+var particleDispRadius = 2;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
 var colorMode = "dbscan"; //"dbscan", "error", or "weight"
 var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
@@ -245,7 +245,7 @@ function drawCentroids(centroids) {
 		ctx.moveTo(centroids[i][0], centroids[i][1]);
 		ctx.arc(centroids[i][0], centroids[i][1], 5, 0, 2*Math.PI);
 		ctx.closePath();
-		ctx.fillStyle = clusterColors[i];
+		ctx.fillStyle = "black";
 		ctx.fill();
 	}
 }
