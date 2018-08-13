@@ -100,6 +100,7 @@ function setup() {
 	canvas.setAttribute("height", String(canvasSize.height) + "px");
 	canvas.addEventListener("mousemove", function(event) { mouseMoveCanvas(event); });
 	canvas.addEventListener("click", mouseClickCanvas);
+	canvas.addEventListener("mouseleave", mouseLeaveCanvas);
 
 	ctx = canvas.getContext("2d");
 
@@ -127,7 +128,11 @@ function mouseClickCanvas() {
 		}
 		tick();
 	}
-
+}
+function mouseLeaveCanvas() {
+	if(running) {
+		stop = true;
+	}
 }
 
 function drawFrame(maxWeight) {
