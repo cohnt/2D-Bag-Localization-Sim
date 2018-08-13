@@ -22,7 +22,7 @@ var particles = [];
 /// CLASSES
 ///////////////////////////////////////////
 
-function Particle(pos) {
+function Particle(pos=[0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
@@ -60,7 +60,9 @@ function setup() {
 
 	ctx = canvas.getContext("2d");
 
-	drawBag();
+	generateParticles();
+
+	drawFrame();
 }
 
 function drawFrame() {
@@ -147,6 +149,13 @@ function errorToColor(error) {
 	}
 
 	return rgbToHex(r, g, b);
+}
+
+function generateParticles() {
+	for(var i=0; i<numParticles; ++i) {
+		particles[i] = new Particle();
+		particles[i].randomize();
+	}
 }
 
 function dist2(a, b) {
