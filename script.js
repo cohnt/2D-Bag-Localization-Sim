@@ -8,7 +8,7 @@ var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
 var particleDispRadius = 3;
-var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-x/errorColorDivisor).
+var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -75,7 +75,8 @@ function mouseMoveCanvas(event) {
 	mouseLoc = [x, y];
 }
 function mouseClickCanvas() {
-	//TODO
+	//
+	tick();
 }
 
 function drawFrame() {
@@ -164,11 +165,28 @@ function errorToColor(error) {
 	return rgbToHex(r, g, b);
 }
 
+function tick() {
+	measureParticles();
+	calculateWeights();
+	//TODO: Save frame here
+	resampleParticles();
+	drawFrame();
+}
+
 function generateParticles() {
 	for(var i=0; i<numParticles; ++i) {
 		particles[i] = new Particle();
 		particles[i].randomize();
 	}
+}
+function measureParticles() {
+	//TODO
+}
+function calculateWeights() {
+	//TODO
+}
+function resampleParticles() {
+	//TODO
 }
 
 function dist2(a, b) {
