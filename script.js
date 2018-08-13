@@ -215,9 +215,9 @@ function measureParticles(currentMousePos) {
 	}
 
 	for(var i=0; i<particles.length; ++i) {
-		var d0 = angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos);
-		var d1 = angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos);
-		particles[i].angleDistFromLine = Math.abs(Math.min(d0, d1));
+		var d0 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos));
+		var d1 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos));
+		particles[i].angleDistFromLine = Math.min(d0, d1);
 		// console.log(particles[i].angleDistFromLine);
 	}
 }
