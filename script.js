@@ -63,6 +63,17 @@ function setup() {
 	drawBag();
 }
 
+function drawFrame() {
+	clearCanvas();
+	drawBag();
+	for(var i=0; i<particles.length; ++i) {
+		particles[i].draw(ctx);
+	}
+}
+function clearCanvas() {
+	//
+	ctx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+}
 function drawBag() {
 	var s0 = [0, 0];
 	var e0 = [0, 0];
