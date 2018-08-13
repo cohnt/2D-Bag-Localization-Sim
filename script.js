@@ -82,6 +82,7 @@ function mouseClickCanvas() {
 
 function drawFrame() {
 	clearCanvas();
+	drawMouseToHandles();
 	drawBag();
 	for(var i=0; i<particles.length; ++i) {
 		particles[i].draw(ctx);
@@ -122,6 +123,16 @@ function drawBag() {
 	ctx.stroke();
 
 	ctx.lineWidth = oldLineWidth;
+}
+function drawMouseToHandles() {
+	ctx.strokeStyle = "black";
+	ctx.beginPath();
+	ctx.moveTo(mousePos[0], mousePos[1]);
+	ctx.lineTo(bagHandleLocations[0][0], bagHandleLocations[0][1]);
+	ctx.stroke();
+	ctx.moveTo(mousePos[0], mousePos[1]);
+	ctx.lineTo(bagHandleLocations[1][0], bagHandleLocations[1][1]);
+	ctx.stroke();
 }
 function errorToColor(error) {
 	var mappedVal = Math.pow(Math.E, -1 * error / errorColorDivisor);
