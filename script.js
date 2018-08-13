@@ -122,7 +122,9 @@ function mouseClickCanvas() {
 		stop = true;
 	}
 	else {
-		running = true;
+		if(animatedMode) {
+			running = true;
+		}
 		tick();
 	}
 
