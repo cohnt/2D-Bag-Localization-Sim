@@ -27,6 +27,7 @@ var ctx;
 var particles = [];
 var mousePos = [];
 var clusterColors = [];
+var started = false;
 
 ///////////////////////////////////////////
 /// CLASSES
@@ -92,9 +93,7 @@ function setup() {
 
 	ctx = canvas.getContext("2d");
 
-	generateParticles();
-
-	drawFrame();
+	drawBag();
 }
 
 function mouseMoveCanvas(event) {
@@ -104,7 +103,10 @@ function mouseMoveCanvas(event) {
 	mousePos = [x, y];
 }
 function mouseClickCanvas() {
-	//
+	if(!started) {
+		generateParticles();
+		started = true;
+	}
 	tick();
 }
 
