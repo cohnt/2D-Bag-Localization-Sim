@@ -17,6 +17,7 @@ var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-x/errorColorDi
 var canvas;
 var ctx;
 var particles = [];
+var mousePos = [];
 
 ///////////////////////////////////////////
 /// CLASSES
@@ -57,12 +58,24 @@ function setup() {
 	canvas = document.getElementById("canvas");
 	canvas.setAttribute("width", String(canvasSize.width) + "px");
 	canvas.setAttribute("height", String(canvasSize.height) + "px");
+	canvas.addEventListener("mousemove", function(event) { mouseMoveCanvas(event); });
+	canvas.addEventListener("click", mouseClickCanvas);
 
 	ctx = canvas.getContext("2d");
 
 	generateParticles();
 
 	drawFrame();
+}
+
+function mouseMoveCanvas(event) {
+	var rect = canvas.getBoundingClientRect();
+	var x = event.clientX - rect.left;
+	var y = event.clientY - rect.top;
+	mouseLoc = [x, y];
+}
+function mouseClickCanvas() {
+	//TODO
 }
 
 function drawFrame() {
