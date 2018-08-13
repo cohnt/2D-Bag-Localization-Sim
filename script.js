@@ -9,6 +9,7 @@ var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
 var particleDispRadius = 3;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
+var useErrorColor = false;
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -33,8 +34,13 @@ function Particle(pos=[0, 0]) {
 		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
 		this.isExploration = true;
 	}
-	this.draw = function(ctx) {
-		color = errorToColor(this.getError());
+	this.draw = function(ctx, maxWeight=1) {
+		if(useErrorColor) {
+			color = errorToColor(this.getError());
+		}
+		else {
+			color = weightToColor(this.weight / maxWeight);
+		}
 		ctx.strokeStyle = color;
 		ctx.fillStyle = color;
 		ctx.beginPath();
@@ -84,8 +90,11 @@ function drawFrame() {
 	clearCanvas();
 	drawMouseToHandles();
 	drawBag();
+	var weights = particles.map(a => a.weight);
+	var maxWeight = weights.reduce(function(a, b) { return Math.max(a, b); });
+	if(maxWeight == 0) { maxWeight = 1; }
 	for(var i=0; i<particles.length; ++i) {
-		particles[i].draw(ctx);
+		particles[i].draw(ctx, maxWeight);
 	}
 }
 function clearCanvas() {
@@ -136,9 +145,15 @@ function drawMouseToHandles() {
 }
 function errorToColor(error) {
 	var mappedVal = Math.pow(Math.E, -1 * error / errorColorDivisor);
+	return weightToColor(mappedVal);
+}
+function weightToColor(weight) {
+	if(weight > 1) {
+		weight = 1;
+	}
 
 	//Create HSL
-	var h = ((1-mappedVal)*240)/360;
+	var h = ((1-weight)*240)/360;
 	var s = 1;
 	var l = 0.5;
 
