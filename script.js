@@ -192,11 +192,28 @@ function measureParticles(currentMousePos) {
 		var d0 = angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos);
 		var d1 = angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos);
 		particles[i].angleDistFromLine = Math.abs(Math.min(d0, d1));
-		console.log(particles[i].angleDistFromLine);
+		// console.log(particles[i].angleDistFromLine);
 	}
 }
 function calculateWeights() {
-	//TODO
+	var data = particles.map(a => a.angleDistFromLine);
+	var dataWeights = normalizeWeight(calculateWeight(data, 0, true));
+
+	for(var i=0; i<particles.length; ++i) {
+		particles[i].weight = dataWeights[i];
+	}
+
+	// var maxInd = 0;
+	// var max = dataWeights[maxInd];
+	// for(var i=1; i<dataWeights.length; ++i) {
+	// 	if(dataWeights[i] > max) {
+	// 		maxInd = i;
+	// 		max = dataWeights[maxInd];
+	// 	}
+	// }
+	// console.log(dataWeights);
+	// console.log(maxInd);
+	// console.log(max);
 }
 function resampleParticles() {
 	//TODO
@@ -209,6 +226,56 @@ function dist2(a, b) {
 function dist(a, b) {
 	//
 	return Math.sqrt(dist2(a, b));
+}
+function mean(arr) {
+	var total = 0;
+	for(var i=0; i<arr.length; ++i) {
+		total += arr[i];
+	}
+	return total / arr.length;
+}
+function variance(arr) {
+	var v = 0;
+	var m = mean(arr);
+	for(var i=0; i<arr.length; ++i) {
+		v += arr[i]*arr[i];
+	}
+	v /= arr.length;
+	v -= m*m;
+	return v;
+}
+function angleDist(a, b) {
+	var diff = a - b;
+	function specialMod(lhs, rhs) {
+		return lhs - (Math.floor(lhs/rhs) * rhs);
+	}
+	return (specialMod(diff + Math.PI, Math.PI*2)) - Math.PI;
+}
+function calculateWeight(raw, actual, isAngle) {
+	var v = variance(raw);
+	var m = 1/(Math.sqrt(2*Math.PI*v));
+	var weights = [];
+	if(isAngle) {
+		for(var i=0; i<raw.length; ++i) {
+			weights[i] = Math.pow(Math.E, -(Math.pow((angleDist(raw[i], actual)), 2) / (2*v))) * m;
+		}
+	}
+	else {
+		for(var i=0; i<raw.length; ++i) {
+			weights[i] = Math.pow(Math.E, -(Math.pow((raw[i]-actual), 2) / (2*v))) * m;
+		}
+	}
+	return weights;
+}
+function normalizeWeight(arr) {
+	var total = 0;
+	for(var i=0; i<arr.length; ++i) {
+		total += arr[i];
+	}
+	for(var i=0; i<arr.length; ++i) {
+		arr[i] /= total;
+	}
+	return arr;
 }
 
 ///////////////////////////////////////////
