@@ -27,6 +27,7 @@ function Particle(pos=[0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
+	this.distFromRay = null;
 
 	this.randomize = function() {
 		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
@@ -72,7 +73,7 @@ function mouseMoveCanvas(event) {
 	var rect = canvas.getBoundingClientRect();
 	var x = event.clientX - rect.left;
 	var y = event.clientY - rect.top;
-	mouseLoc = [x, y];
+	mousePos = [x, y];
 }
 function mouseClickCanvas() {
 	//
@@ -166,7 +167,9 @@ function errorToColor(error) {
 }
 
 function tick() {
-	measureParticles();
+	var currentMousePos = mousePos.slice();
+
+	measureParticles(currentMousePos);
 	calculateWeights();
 	//TODO: Save frame here
 	resampleParticles();
@@ -179,8 +182,18 @@ function generateParticles() {
 		particles[i].randomize();
 	}
 }
-function measureParticles() {
-	//TODO
+function measureParticles(currentMousePos) {
+	function distPointLine(p1, p2, p0) {
+		//https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
+		return Math.abs((p2[1]-p1[1])*p0[0] - (p2[0]-p1[0])*p0[1] + p2[0]*p1[1] - p2[1]*p1[0])
+		       / Math.sqrt(Math.pow(p2[1]-p1[1], 2) + Math.pow(p2[0]-p1[0], 2));
+	}
+
+	for(var i=0; i<particles.length; ++i) {
+		var d0 = distPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos);
+		var d1 = distPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos);
+		particles[i].distFromRay = Math.min(d0, d1);
+	}
 }
 function calculateWeights() {
 	//TODO
