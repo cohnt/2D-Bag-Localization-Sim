@@ -7,10 +7,11 @@ var bagHandleLocations = [[380, 280], [420, 220]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
 var numParticles = 500;
-var particleDispRadius = 3;
+var particleDispRadius = 2;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
 var useErrorColor = false;
 var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
+var resamplingNoise = 10; //The maximum distance in resampling
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -257,6 +258,10 @@ function resampleParticles() {
 		}
 		chkVal += step;
 		newParticles[i] = new Particle(particles[chkIndex].pos);
+		var randAngle = Math.random() * 2 * Math.PI;
+		var randDist = Math.random() * resamplingNoise;
+		newParticles[i].pos[0] += randDist * Math.cos(randAngle);
+		newParticles[i].pos[1] += randDist * Math.sin(randAngle);
 	}
 	for(var i=newParticles.length; i<numParticles; ++i) {
 		newParticles[i] = new Particle();
