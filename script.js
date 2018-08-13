@@ -10,6 +10,7 @@ var numParticles = 500;
 var particleDispRadius = 3;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
 var useErrorColor = false;
+var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
 
 ///////////////////////////////////////////
 /// GLOBAL VARIABLES
@@ -199,6 +200,8 @@ function tick() {
 	calculateWeights();
 	//TODO: Save frame here
 	resampleParticles();
+	measureParticles(currentMousePos);
+	calculateWeights();
 	drawFrame();
 }
 
@@ -242,7 +245,24 @@ function calculateWeights() {
 	// console.log(max);
 }
 function resampleParticles() {
-	//TODO
+	var weightData = particles.map(a => a.weight);
+	var newParticles = [];
+	var cs = cumsum(weightData);
+	var step = 1/((numParticles * (1 - explorationFactor))+1);
+	var chkVal = step;
+	var chkIndex = 0;
+	for(var i=0; i<numParticles * (1 - explorationFactor); ++i) {
+		while(cs[chkIndex] < chkVal) {
+			++chkIndex;
+		}
+		chkVal += step;
+		newParticles[i] = new Particle(particles[chkIndex].pos);
+	}
+	for(var i=newParticles.length; i<numParticles; ++i) {
+		newParticles[i] = new Particle();
+		newParticles[i].randomize();
+	}
+	particles = newParticles.slice();
 }
 
 function dist2(a, b) {
@@ -269,6 +289,12 @@ function variance(arr) {
 	v /= arr.length;
 	v -= m*m;
 	return v;
+}
+function cumsum(arr) {
+	for(var i=1; i<arr.length; ++i) {
+		arr[i] += arr[i-1];
+	}
+	return arr;
 }
 function angleDist(a, b) {
 	var diff = a - b;
