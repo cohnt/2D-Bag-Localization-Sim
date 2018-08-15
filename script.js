@@ -317,6 +317,7 @@ function tick() {
 		console.log(centroids[i]);
 	}
 	console.log('');
+	console.log("Mouse location: " + mousePos[0] + "," + mousePos[1]);
 	drawCentroids(centroids);
 
 	if(animatedMode) {
@@ -405,7 +406,7 @@ function resampleParticles() {
 		newParticles[i] = new Particle(particles[chkIndex].pos);
 		var randAngle = Math.random() * 2 * Math.PI;
 		var randDist = Math.random() * resamplingNoise;
-		var randHeight = Math.random() * resamplingHeightNoise;
+		var randHeight = (Math.random() * resamplingHeightNoise * 2) - resamplingHeightNoise;
 		newParticles[i].pos[0] += randDist * Math.cos(randAngle);
 		newParticles[i].pos[1] += randDist * Math.sin(randAngle);
 		newParticles[i].pos[2] += randHeight;
