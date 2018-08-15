@@ -9,11 +9,12 @@ var bagHandleAngle = Math.PI / 6;
 var animatedModeTickRate = 100; //ms per frame
 var worldHeight = 200;
 var robotHeight = 125;
+var numFramesToUse = 10;
 
 //PARTICLE FILTER
 var numParticles = 1000;
 var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
-var resamplingNoise = 10; //The maximum lateral distance in resampling
+var resamplingNoise = 15; //The maximum lateral distance in resampling
 var resamplingHeightNoise = 5; //Dito above, but for height
 
 //CANVAS
@@ -374,9 +375,9 @@ function measureParticles(currentMousePos) {
 function calculateWeights() {
 	var data = [];
 	var dataWeights = [];
-	for(var i=0; i<mousePosHistory.length; ++i) {
-		data[i] = particles.map(a => a.angleDistFromLine[i]);
-		dataWeights[i] = normalizeWeight(calculateWeight(data[i], 0, true));
+	for(var i=Math.max(0, mousePosHistory.length - numFramesToUse); i<mousePosHistory.length; ++i) {
+		data.push(particles.map(a => a.angleDistFromLine[i]));
+		dataWeights.push(normalizeWeight(calculateWeight(data[data.length-1], 0, true)));
 	}
  	//Combine all
 	var combinedWeights = [];
