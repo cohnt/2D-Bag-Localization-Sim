@@ -409,6 +409,14 @@ function resampleParticles() {
 		newParticles[i].pos[0] += randDist * Math.cos(randAngle);
 		newParticles[i].pos[1] += randDist * Math.sin(randAngle);
 		newParticles[i].pos[2] += randHeight;
+
+		if(newParticles[i].pos[0] < 0) { newParticles[i].pos[0] = 0; }
+		if(newParticles[i].pos[1] < 0) { newParticles[i].pos[1] = 0; }
+		if(newParticles[i].pos[2] < 0) { newParticles[i].pos[2] = 0; }
+
+		if(newParticles[i].pos[0] > canvasSize.width) { newParticles[i].pos[0] = canvasSize.width; }
+		if(newParticles[i].pos[1] > canvasSize.height) { newParticles[i].pos[1] = canvasSize.height; }
+		if(newParticles[i].pos[2] > worldHeight) { newParticles[i].pos[2] = worldHeight; }
 	}
 	for(var i=newParticles.length; i<numParticles; ++i) {
 		newParticles[i] = new Particle();
