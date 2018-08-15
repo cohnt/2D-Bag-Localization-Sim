@@ -11,9 +11,9 @@ var worldHeight = 200;
 var robotHeight = 125;
 
 //PARTICLE FILTER
-var numParticles = 2000;
+var numParticles = 1000;
 var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
-var resamplingNoise = 5; //The maximum lateral distance in resampling
+var resamplingNoise = 10; //The maximum lateral distance in resampling
 var resamplingHeightNoise = 5; //Dito above, but for height
 
 //CANVAS
@@ -23,8 +23,8 @@ var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorCol
 var colorMode = "dbscan"; //"dbscan", "error", "weight", or height
 
 //DBSCAN
-var epsilon = 15;
-var minClusterSize = 50;
+var epsilon = 10;
+var minClusterSize = 25;
 var noiseColor = "grey";
 var unassignedColor = "black";
 
@@ -36,6 +36,7 @@ var canvas;
 var ctx;
 var particles = [];
 var mousePos = [];
+var mousePosHistory = [];
 var clusterColors = [];
 var animatedMode = true;
 var started = false;
@@ -50,7 +51,7 @@ function Particle(pos=[0, 0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
-	this.angleDistFromLine = null;
+	this.angleDistFromLine = [];
 
 	this.type = "unassigned";
 	this.cID = -1;
@@ -294,6 +295,8 @@ function tick() {
 	}
 
 	var currentMousePos = mousePos.slice();
+	currentMousePos.push(robotHeight);
+	mousePosHistory.push(currentMousePos.slice());
 
 	measureParticles(currentMousePos);
 	calculateWeights();
@@ -352,14 +355,12 @@ function measureParticles(currentMousePos) {
 		return angle;
 	}
 
-	var mouse = currentMousePos.slice();
-	mouse.push(robotHeight);
-
 	for(var i=0; i<particles.length; ++i) {
-		var d0 = Math.abs(angleDistPointLine(mouse, bagHandleLocations[0], particles[i].pos));
-		var d1 = Math.abs(angleDistPointLine(mouse, bagHandleLocations[1], particles[i].pos));
-		particles[i].angleDistFromLine = Math.min(d0, d1);
-		// console.log(particles[i].angleDistFromLine);
+		for(var j=0; j<mousePosHistory.length; ++j) {
+			var d0 = Math.abs(angleDistPointLine(mousePosHistory[j], bagHandleLocations[0], particles[i].pos));
+			var d1 = Math.abs(angleDistPointLine(mousePosHistory[j], bagHandleLocations[1], particles[i].pos));
+			particles[i].angleDistFromLine[j] = Math.min(d0, d1);
+		}
 	}
 
 	for(var i=0; i<particles.length; ++i) {
@@ -371,11 +372,25 @@ function measureParticles(currentMousePos) {
 	}
 }
 function calculateWeights() {
-	var data = particles.map(a => a.angleDistFromLine);
-	var dataWeights = normalizeWeight(calculateWeight(data, 0, true));
+	var data = [];
+	var dataWeights = [];
+	for(var i=0; i<mousePosHistory.length; ++i) {
+		data[i] = particles.map(a => a.angleDistFromLine[i]);
+		dataWeights[i] = normalizeWeight(calculateWeight(data[i], 0, true));
+	}
+ 	//Combine all
+	var combinedWeights = [];
+	for(var i=0; i<dataWeights[0].length; ++i) {
+		combinedWeights[i] = 1;
+		for(var j=0; j<dataWeights.length; ++j) {
+			combinedWeights[i] *= dataWeights[j][i];
+		}
+	}
+ 	//Renormalize
+	var normalizedCombined = normalizeWeight(combinedWeights);
 
 	for(var i=0; i<particles.length; ++i) {
-		particles[i].weight = dataWeights[i];
+		particles[i].weight = normalizedCombined[i];
 	}
 
 	// var maxInd = 0;
