@@ -34,6 +34,7 @@ var canvas;
 var ctx;
 var particles = [];
 var mousePos = [];
+var mousePosHistory = [];
 var clusterColors = [];
 var started = false;
 var running = false;
@@ -47,7 +48,7 @@ function Particle(pos=[0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
-	this.angleDistFromLine = null;
+	this.angleDistFromLine = [];
 
 	this.type = "unassigned";
 	this.cID = -1;
@@ -282,6 +283,7 @@ function tick() {
 	}
 
 	var currentMousePos = mousePos.slice();
+	mousePosHistory.push(currentMousePos.slice());
 
 	measureParticles(currentMousePos);
 	calculateWeights();
@@ -320,19 +322,46 @@ function measureParticles(currentMousePos) {
 	}
 
 	for(var i=0; i<particles.length; ++i) {
-		var d0 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos));
-		var d1 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos));
-		particles[i].angleDistFromLine = Math.min(d0, d1);
-		// console.log(particles[i].angleDistFromLine);
+		for(var j=0; j<mousePosHistory.length; ++j) {
+			var d0 = Math.abs(angleDistPointLine(mousePosHistory[j], bagHandleLocations[0], particles[i].pos));
+			var d1 = Math.abs(angleDistPointLine(mousePosHistory[j], bagHandleLocations[1], particles[i].pos));
+			particles[i].angleDistFromLine[j] = Math.min(d0, d1);
+		}
 	}
 }
 function calculateWeights() {
-	var data = particles.map(a => a.angleDistFromLine);
-	var dataWeights = normalizeWeight(calculateWeight(data, 0, true));
+	var data = [];
+	var dataWeights = [];
+	for(var i=0; i<mousePosHistory.length; ++i) {
+		data[i] = particles.map(a => a.angleDistFromLine[i]);
+		dataWeights[i] = normalizeWeight(calculateWeight(data[i], 0, true));
+	}
+
+	//Combine all
+	var combinedWeights = [];
+	for(var i=0; i<dataWeights[0].length; ++i) {
+		combinedWeights[i] = 1;
+		for(var j=0; j<dataWeights.length; ++j) {
+			combinedWeights[i] *= dataWeights[j][i];
+		}
+	}
+
+	//Renormalize
+	var normalizedCombined = normalizeWeight(combinedWeights);
 
 	for(var i=0; i<particles.length; ++i) {
-		particles[i].weight = dataWeights[i];
+		particles[i].weight = normalizedCombined[i];
 	}
+
+
+
+
+	// var data = particles.map(a => a.angleDistFromLine);
+	// var dataWeights = normalizeWeight(calculateWeight(data, 0, true));
+
+	// for(var i=0; i<particles.length; ++i) {
+	// 	particles[i].weight = dataWeights[i];
+	// }
 
 	// var maxInd = 0;
 	// var max = dataWeights[maxInd];
