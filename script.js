@@ -11,20 +11,20 @@ var worldHeight = 200;
 var robotHeight = 125;
 
 //PARTICLE FILTER
-var numParticles = 1000;
+var numParticles = 2000;
 var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
 var resamplingNoise = 10; //The maximum lateral distance in resampling
-var resamplingHeightNoise = 10; //Dito above, but for height
+var resamplingHeightNoise = 7.5; //Dito above, but for height
 
 //CANVAS
 var canvasSize = {width: 800, height: 500};
 var particleDispRadius = 2;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
-var colorMode = "height"; //"dbscan", "error", "weight", or height
+var colorMode = "dbscan"; //"dbscan", "error", "weight", or height
 
 //DBSCAN
 var epsilon = 15;
-var minClusterSize = 25;
+var minClusterSize = 50;
 var noiseColor = "grey";
 var unassignedColor = "black";
 
@@ -313,11 +313,10 @@ function tick() {
 
 	var centroids = getClusterCentroids();
 	console.log("Centroids:");
-	for(var i=0; i<centroids.length; ++i) {
-		console.log(centroids[i]);
+	for(var i=1; i<centroids.length; ++i) {
+		console.log(centroids[i] + "\t\tError: " + Math.min(dist(centroids[i], bagHandleLocations[0]), dist(centroids[i], bagHandleLocations[1])));
 	}
 	console.log('');
-	console.log("Mouse location: " + mousePos[0] + "," + mousePos[1]);
 	drawCentroids(centroids);
 
 	if(animatedMode) {
