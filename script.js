@@ -20,7 +20,7 @@ var resamplingHeightNoise = 10; //Dito above, but for height
 var canvasSize = {width: 800, height: 500};
 var particleDispRadius = 2;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
-var colorMode = "dbscan"; //"dbscan", "error", or "weight"
+var colorMode = "height"; //"dbscan", "error", "weight", or height
 
 //DBSCAN
 var epsilon = 15;
@@ -76,6 +76,9 @@ function Particle(pos=[0, 0, 0]) {
 			else {
 				color = clusterColors[this.cID];
 			}
+		}
+		else if(colorMode == "height") {
+			color = heightToColor(this.pos[2]);
 		}
 		ctx.strokeStyle = color;
 		ctx.fillStyle = color;
@@ -239,6 +242,10 @@ function weightToColor(weight) {
 	}
 
 	return rgbToHex(r, g, b);
+}
+function heightToColor(height) {
+	//
+	return weightToColor(1 - (Math.abs(bagHandleLocations[0][2] - height) / worldHeight));
 }
 
 function getClusterCentroids() {
