@@ -3,26 +3,28 @@
 ///////////////////////////////////////////
 
 //GLOBAL SETTINGS
-var bagHandleLocations = [[380, 280], [420, 220]];
+var bagHandleLocations = [[380, 280, 80], [420, 220, 80]];
 var bagHandleLength = 40;
 var bagHandleAngle = Math.PI / 6;
-var animatedMode = true;
 var animatedModeTickRate = 100; //ms per frame
+var worldHeight = 200;
+var robotHeight = 125;
 
 //PARTICLE FILTER
-var numParticles = 500;
-var explorationFactor = 0.01; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
-var resamplingNoise = 10; //The maximum distance in resampling
+var numParticles = 2000;
+var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
+var resamplingNoise = 5; //The maximum lateral distance in resampling
+var resamplingHeightNoise = 5; //Dito above, but for height
 
 //CANVAS
 var canvasSize = {width: 800, height: 500};
 var particleDispRadius = 2;
 var errorColorDivisor = 100; //Error is mapped to (0, 1] with e^(-error/errorColorDivisor).
-var colorMode = "dbscan"; //"dbscan", "error", or "weight"
+var colorMode = "dbscan"; //"dbscan", "error", "weight", or height
 
 //DBSCAN
-var epsilon = 10;
-var minClusterSize = 25;
+var epsilon = 15;
+var minClusterSize = 50;
 var noiseColor = "grey";
 var unassignedColor = "black";
 
@@ -35,6 +37,7 @@ var ctx;
 var particles = [];
 var mousePos = [];
 var clusterColors = [];
+var animatedMode = true;
 var started = false;
 var running = false;
 var stop = false;
@@ -43,7 +46,7 @@ var stop = false;
 /// CLASSES
 ///////////////////////////////////////////
 
-function Particle(pos=[0, 0]) {
+function Particle(pos=[0, 0, 0]) {
 	this.pos = pos.slice();
 	this.weight = 0;
 	this.isExploration = false;
@@ -53,7 +56,7 @@ function Particle(pos=[0, 0]) {
 	this.cID = -1;
 
 	this.randomize = function() {
-		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height];
+		this.pos = [Math.random() * canvasSize.width, Math.random() * canvasSize.height, Math.random() * worldHeight];
 		this.isExploration = true;
 	}
 	this.draw = function(ctx, maxWeight=1) {
@@ -73,6 +76,9 @@ function Particle(pos=[0, 0]) {
 			else {
 				color = clusterColors[this.cID];
 			}
+		}
+		else if(colorMode == "height") {
+			color = heightToColor(this.pos[2]);
 		}
 		ctx.strokeStyle = color;
 		ctx.fillStyle = color;
@@ -237,12 +243,16 @@ function weightToColor(weight) {
 
 	return rgbToHex(r, g, b);
 }
+function heightToColor(height) {
+	//
+	return weightToColor(1 - (Math.abs(bagHandleLocations[0][2] - height) / worldHeight));
+}
 
 function getClusterCentroids() {
 	var centroids = clusterColors.slice();
 	var num = clusterColors.slice();
 	for(var i=1; i<centroids.length; ++i) {
-		centroids[i] = [0, 0];
+		centroids[i] = [0, 0, 0];
 		num[i] = 0;
 	}
 
@@ -253,12 +263,14 @@ function getClusterCentroids() {
 		}
 		centroids[id][0] += particles[i].pos[0];
 		centroids[id][1] += particles[i].pos[1];
+		centroids[id][2] += particles[i].pos[2];
 		++num[id];
 	}
 
 	for(var i=1; i<centroids.length; ++i) {
 		centroids[i][0] /= num[i];
 		centroids[i][1] /= num[i];
+		centroids[i][2] /= num[i];
 	}
 
 	return centroids;
@@ -300,6 +312,11 @@ function tick() {
 	drawFrame(maxWeight);
 
 	var centroids = getClusterCentroids();
+	console.log("Centroids:");
+	for(var i=1; i<centroids.length; ++i) {
+		console.log(centroids[i] + "\t\tError: " + Math.min(dist(centroids[i], bagHandleLocations[0]), dist(centroids[i], bagHandleLocations[1])));
+	}
+	console.log('');
 	drawCentroids(centroids);
 
 	if(animatedMode) {
@@ -315,15 +332,42 @@ function generateParticles() {
 }
 function measureParticles(currentMousePos) {
 	function angleDistPointLine(mouse, bag, particle) {
-		//https://stackoverflow.com/questions/1211212/how-to-calculate-an-angle-from-three-points
-		return Math.atan2(bag[1] - mouse[1], bag[0] - mouse[0]) - Math.atan2(particle[1] - mouse[1], particle[0] - mouse[0]);
+		// //https://stackoverflow.com/questions/1211212/how-to-calculate-an-angle-from-three-points
+		// return Math.atan2(bag[1] - mouse[1], bag[0] - mouse[0]) - Math.atan2(particle[1] - mouse[1], particle[0] - mouse[0]);
+
+		//https://stackoverflow.com/questions/19729831/angle-between-3-points-in-3d-space
+		var v1 = [bag[0] - mouse[0], bag[1] - mouse[1], bag[2] - mouse[2]];
+		var v2 = [particle[0] - mouse[0], particle[1] - mouse[1], particle[2] - mouse[2]];
+
+		var v1mag = Math.sqrt(v1[0] * v1[0] + v1[1] * v1[1] + v1[2] * v1[2]);
+		var v1norm = [v1[0] / v1mag, v1[1] / v1mag, v1[2] / v1mag];
+
+		var v2mag = Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1] + v2[2] * v2[2]);
+		var v2norm = [v2[0] / v2mag, v2[1] / v2mag, v2[2] / v2mag];
+
+		var res = v1norm[0] * v2norm[0] + v1norm[1] * v2norm[1] + v1norm[2] * v2norm[2];
+
+		var angle = Math.acos(res);
+
+		return angle;
+	}
+
+	var mouse = currentMousePos.slice();
+	mouse.push(robotHeight);
+
+	for(var i=0; i<particles.length; ++i) {
+		var d0 = Math.abs(angleDistPointLine(mouse, bagHandleLocations[0], particles[i].pos));
+		var d1 = Math.abs(angleDistPointLine(mouse, bagHandleLocations[1], particles[i].pos));
+		particles[i].angleDistFromLine = Math.min(d0, d1);
+		// console.log(particles[i].angleDistFromLine);
 	}
 
 	for(var i=0; i<particles.length; ++i) {
-		var d0 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[0], particles[i].pos));
-		var d1 = Math.abs(angleDistPointLine(currentMousePos, bagHandleLocations[1], particles[i].pos));
-		particles[i].angleDistFromLine = Math.min(d0, d1);
-		// console.log(particles[i].angleDistFromLine);
+		var d0 = Math.sqrt(Math.pow(particles[i].pos[0] - bagHandleLocations[0][0], 2) + Math.pow(particles[i].pos[1] - bagHandleLocations[0][1], 2));
+		var d1 = Math.sqrt(Math.pow(particles[i].pos[0] - bagHandleLocations[1][0], 2) + Math.pow(particles[i].pos[1] - bagHandleLocations[1][1], 2));
+		particles[i].actualHorizontalDist = Math.min(d0, d1);
+		particles[i].actualVerticalDist = Math.abs(particles[i].pos[2] - bagHandleLocations[0][2]);
+		//For debugging, if needed
 	}
 }
 function calculateWeights() {
@@ -361,8 +405,18 @@ function resampleParticles() {
 		newParticles[i] = new Particle(particles[chkIndex].pos);
 		var randAngle = Math.random() * 2 * Math.PI;
 		var randDist = Math.random() * resamplingNoise;
+		var randHeight = (Math.random() * resamplingHeightNoise * 2) - resamplingHeightNoise;
 		newParticles[i].pos[0] += randDist * Math.cos(randAngle);
 		newParticles[i].pos[1] += randDist * Math.sin(randAngle);
+		newParticles[i].pos[2] += randHeight;
+
+		if(newParticles[i].pos[0] < 0) { newParticles[i].pos[0] = 0; }
+		if(newParticles[i].pos[1] < 0) { newParticles[i].pos[1] = 0; }
+		if(newParticles[i].pos[2] < 0) { newParticles[i].pos[2] = 0; }
+
+		if(newParticles[i].pos[0] > canvasSize.width) { newParticles[i].pos[0] = canvasSize.width; }
+		if(newParticles[i].pos[1] > canvasSize.height) { newParticles[i].pos[1] = canvasSize.height; }
+		if(newParticles[i].pos[2] > worldHeight) { newParticles[i].pos[2] = worldHeight; }
 	}
 	for(var i=newParticles.length; i<numParticles; ++i) {
 		newParticles[i] = new Particle();
@@ -445,7 +499,7 @@ function getRandColor(brightness){
 
 function dist2(a, b) {
 	//
-	return Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2);
+	return Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2) + Math.pow(a[2]-b[2], 2);
 }
 function dist(a, b) {
 	//
