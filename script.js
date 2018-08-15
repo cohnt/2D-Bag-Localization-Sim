@@ -13,8 +13,8 @@ var robotHeight = 125;
 //PARTICLE FILTER
 var numParticles = 2000;
 var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
-var resamplingNoise = 10; //The maximum lateral distance in resampling
-var resamplingHeightNoise = 7.5; //Dito above, but for height
+var resamplingNoise = 5; //The maximum lateral distance in resampling
+var resamplingHeightNoise = 5; //Dito above, but for height
 
 //CANVAS
 var canvasSize = {width: 800, height: 500};
@@ -37,7 +37,7 @@ var ctx;
 var particles = [];
 var mousePos = [];
 var clusterColors = [];
-var animatedMode = false;
+var animatedMode = true;
 var started = false;
 var running = false;
 var stop = false;
