@@ -9,13 +9,13 @@ var bagHandleAngle = Math.PI / 6;
 var animatedModeTickRate = 100; //ms per frame
 var worldHeight = 200;
 var robotHeight = 125;
-var numFramesToUse = 10;
 
 //PARTICLE FILTER
 var numParticles = 1000;
 var explorationFactor = 0.05; //0.0 means no particles are randomly placed for exploration, 0.5 means 50%, 1.0 means 100%
 var resamplingNoise = 15; //The maximum lateral distance in resampling
 var resamplingHeightNoise = 5; //Dito above, but for height
+var numFramesToUse = 10;
 
 //CANVAS
 var canvasSize = {width: 800, height: 500};

@@ -2,10 +2,178 @@
 <html>
 <head>
 	<title>2D Bag Localization Sim</title>
+	<style>
+		th {
+			padding: 0px 8px;
+			text-align: left;
+		}
+		td {
+			padding: 2px 8px;
+		}
+		.narrowRows tr td {
+			padding: 0px 8px;
+		}
+	</style>
 </head>
 <body>
 
 <canvas id="canvas" width="10px" height="10px" style="border: 1px dotted black; background-color: #eeeeee"></canvas>
+
+<div style="display: inline-block; vertical-align: top; font-size: 14px;">
+	<table>
+		<tbody class="narrowRows">
+			<tr>
+				<th>Parameter Name</th>
+				<th>Value</th>
+				<th>Description</th>
+			</tr>
+			<!-- <tr>
+				<td>Parameter</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					//
+				})(this)"></textarea></td>
+				<td>Description</td>
+			</tr> -->
+			<tr>
+				<td>Bag Height</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0 && Number(elt.value) <= 200) {
+							bagHandleLocations[0][2] = Number(elt.value);
+							bagHandleLocations[1][2] = Number(elt.value);
+						}
+					}
+				})(this)">80</textarea></td>
+				<td>The height of the bag, in centimeters. Must be less than 200.</td>
+			</tr>
+			<tr>
+				<td>Robot Height</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0 && Number(elt.value) <= 200) {
+							robotHeight = Number(elt.value);
+						}
+					}
+				})(this)">125</textarea></td>
+				<td>The height of the robot's camera, in centimeters. Must be less than 200.</td>
+			</tr>
+
+			<td><td>&nbsp;</td></td>
+			
+			<tr>
+				<td>Number of Particles</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0 && Number(elt.value) <= 1000000000) {
+							if(Number(elt.value) % 1 == Number(elt.value)) {
+								numParticles = Number(elt.value);
+							}
+						}
+					}
+				})(this)">1000</textarea></td>
+				<td>How many particles to use.</td>
+			</tr>
+			<tr>
+				<td>Exploration Percentage</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0 && Number(elt.value) <= 1) {
+							explorationFactor = Number(elt.value);
+						}
+					}
+				})(this)">0.05</textarea></td>
+				<td>The percentage of particles designated for exploration (from 0 to 1).</td>
+			</tr>
+			<tr>
+				<td>Horizontal Noise</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0) {
+							resamplingNoise = Number(elt.value);
+						}
+					}
+				})(this)">15</textarea></td>
+				<td>How far a particle can move horizontally.</td>
+			</tr>
+			<tr>
+				<td>Vertical Noise</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 0) {
+							resamplingHeightNoise = Number(elt.value);
+						}
+					}
+				})(this)">5</textarea></td>
+				<td>How far a particle can move vertically.</td>
+			</tr>
+			<tr>
+				<td>Weighting Frames</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) >= 1) {
+							if(Number(elt.value) % 1 == Number(elt.value)) {
+								numFramesToUse = Number(elt.value):
+							}
+						}
+					}
+				})(this)">10</textarea></td>
+				<td>Up to how many saved frames to use for weighting the particles. Can be set to Infinity.</td>
+			</tr>
+
+			<tr><td>&nbsp;</td></tr>
+
+			<tr>
+				<td>Color Mode</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(elt.value == 'dbscan' || elt.value == 'error' || elt.value == 'weight' || elt.value == 'height') {
+						colorMode = elt.value;
+					}
+				})(this)">dbscan</textarea></td>
+				<td>Can be "dbscan" (clusters), "error", "weight", or "height".</td>
+			</tr>
+
+			<tr><td>&nbsp;</td></tr>
+			
+			<tr>
+				<td>Epsilon</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value) > 0) {
+							epsilon = Number(elt.value);
+						}
+					}
+				})(this)">10</textarea></td>
+				<td>DBSCAN epsilon parameter.</td>
+			</tr>
+			<tr>
+				<td>Minimum Cluster Size</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(!isNaN(elt.value)) {
+						if(Number(elt.value > 0)) {
+							minClusterSize = Number(elt.value);
+						}
+					}
+				})(this)">25</textarea></td>
+				<td>DBSCAN minimum cluster size parameter.</td>
+			</tr>
+
+			<tr><td>&nbsp;</td></tr>
+
+			<tr>
+				<td>Animated Mode</td>
+				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+					if(elt.value == '1') {
+						animatedMode = true;
+					}
+					else if(elt.value == '0') {
+						animatedMode = false;
+					}
+				})(this)">1</textarea></td>
+				<td>1 for yes, 0 for no.</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
 
 <script type="text/javascript" src="script.js"></script>
 </body>
