@@ -29,14 +29,14 @@
 			</tr>
 			<!-- <tr>
 				<td>Parameter</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					//
 				})(this)"></textarea></td>
 				<td>Description</td>
 			</tr> -->
 			<tr>
 				<td>Bag Height</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0 && Number(elt.value) <= 200) {
 							bagHandleLocations[0][2] = Number(elt.value);
@@ -48,7 +48,7 @@
 			</tr>
 			<tr>
 				<td>Robot Height</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0 && Number(elt.value) <= 200) {
 							robotHeight = Number(elt.value);
@@ -62,7 +62,7 @@
 			
 			<tr>
 				<td>Number of Particles</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0 && Number(elt.value) <= 1000000000) {
 							if(Number(elt.value) % 1 == Number(elt.value)) {
@@ -75,7 +75,7 @@
 			</tr>
 			<tr>
 				<td>Exploration Percentage</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0 && Number(elt.value) <= 1) {
 							explorationFactor = Number(elt.value);
@@ -86,7 +86,7 @@
 			</tr>
 			<tr>
 				<td>Horizontal Noise</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0) {
 							resamplingNoise = Number(elt.value);
@@ -97,7 +97,7 @@
 			</tr>
 			<tr>
 				<td>Vertical Noise</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 0) {
 							resamplingHeightNoise = Number(elt.value);
@@ -108,23 +108,21 @@
 			</tr>
 			<tr>
 				<td>Weighting Frames</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) >= 1) {
-							if(Number(elt.value) % 1 == Number(elt.value)) {
-								numFramesToUse = Number(elt.value):
-							}
+							numFramesToUse = Math.floor(Number(elt.value));
 						}
 					}
-				})(this)">10</textarea></td>
-				<td>Up to how many saved frames to use for weighting the particles. Can be set to Infinity.</td>
+				})(this)">Infinity</textarea></td>
+				<td>Up to how many saved frames to use for weighting the particles. Can be set to "Infinity".</td>
 			</tr>
 
 			<tr><td>&nbsp;</td></tr>
 
 			<tr>
 				<td>Color Mode</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(elt.value == 'dbscan' || elt.value == 'error' || elt.value == 'weight' || elt.value == 'height') {
 						colorMode = elt.value;
 					}
@@ -136,7 +134,7 @@
 			
 			<tr>
 				<td>Epsilon</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value) > 0) {
 							epsilon = Number(elt.value);
@@ -147,7 +145,7 @@
 			</tr>
 			<tr>
 				<td>Minimum Cluster Size</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(!isNaN(elt.value)) {
 						if(Number(elt.value > 0)) {
 							minClusterSize = Number(elt.value);
@@ -161,7 +159,7 @@
 
 			<tr>
 				<td>Animated Mode</td>
-				<td><textarea class="parameterForm" cols="5" rows="1" onkeyup="(function(elt){
+				<td><textarea class="parameterForm" cols="10" rows="1" onkeyup="(function(elt){
 					if(elt.value == '1') {
 						animatedMode = true;
 					}
