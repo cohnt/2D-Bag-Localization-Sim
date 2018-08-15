@@ -125,6 +125,11 @@ function mouseClickCanvas() {
 	if(!started) {
 		generateParticles();
 		started = true;
+		var elts = document.getElementsByClassName("parameterForm");
+		for(var i=0; i<elts.length; ++i) {
+			elts[i].readOnly = "true";
+			elts[i].style.color = "grey";
+		}
 	}
 
 	if(running) {
